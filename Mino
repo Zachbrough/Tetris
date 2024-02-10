@@ -1,10 +1,10 @@
 package mino;
 
 /**
- * Contorols the shapes
+ * Contorls the minos
  *
  * @author (Zach Brough)
- * @version (2, 8, 2023)
+ * @version (2, 9, 2023)
  */
 
 import java.awt.Color;
@@ -15,15 +15,16 @@ import main.KeyHandler;
 
 public class Mino
 {
-    public Block b[] = new Block[4];
-    public Block tempB[] = new Block[4];
-    int autoDropCounter = 0;
-    public int direction = 1;
-    boolean leftCollision, rightCollision, bottomCollision;
-    public boolean active = true;
+    public Block b[] = new Block[4]; //Shapes position array
+    public Block tempB[] = new Block[4]; //Shapes new position array
+    int autoDropCounter = 0; //Drop counter
+    public int direction = 1; //Rotation 
+    boolean leftCollision, rightCollision, bottomCollision; //Collision varibles
+    public boolean active = true; //States if shape is active
     public boolean deactivating;
     int deactivateCounter = 0;
     
+    //Sets colour
     public void create(Color c){
         b[0] = new Block(c);
         b[1] = new Block(c);
@@ -34,10 +35,12 @@ public class Mino
         tempB[2] = new Block(c);
         tempB[3] = new Block(c);
     }
+    
     public void setXY(int x, int y) {}
+    
     public void updateXY(int direction) {
-        
         checkRotationCollision();
+        
         if (leftCollision == false && rightCollision == false && bottomCollision == false){
             this.direction = direction;
             b[0].x = tempB[0].x;
@@ -50,10 +53,14 @@ public class Mino
             b[3].y = tempB[3].y; 
         }
     }
+    
+    //Gets direction
     public void getDirection1() {}
     public void getDirection2() {}
     public void getDirection3() {}
     public void getDirection4() {}
+    
+    //Checks collision
     public void checkMovementCollision() {
         leftCollision = false;
         rightCollision = false;
@@ -78,6 +85,8 @@ public class Mino
         }
         }
     }
+    
+    //Checks rotation collision
     public void checkRotationCollision() {
         leftCollision = false;
         rightCollision = false;
@@ -102,6 +111,8 @@ public class Mino
         }
         }
     }
+    
+    //Checks collison to other blocks
     private void checkStaticBlockCollision(){
         for(int i = 0; i < PlayManager.staticBlocks.size(); i++){
             int targetX = PlayManager.staticBlocks.get(i).x;
@@ -125,10 +136,13 @@ public class Mino
             }     
         }
     }
+    
+    //Updates mino
     public void update() {
         if(deactivating) {
             deactivating();
         }
+        
         if(KeyHandler.upPressed){
             switch(direction){
                 case 1: getDirection2();break;
@@ -140,18 +154,22 @@ public class Mino
             }
             KeyHandler.upPressed = false;
         }
+        
         checkMovementCollision();
+        
         if(KeyHandler.downPressed){
+            
             if(bottomCollision == false){
             b[0].y += Block.SIZE;
             b[1].y += Block.SIZE;
             b[2].y += Block.SIZE;
             b[3].y += Block.SIZE;
-            
+            PlayManager.score++;
             autoDropCounter = 0;
             }
             KeyHandler.downPressed = false;
         }
+        
         if(KeyHandler.leftPressed){
             if(leftCollision == false){
             b[0].x -= Block.SIZE;
@@ -161,6 +179,7 @@ public class Mino
             }
             KeyHandler.leftPressed = false;
         }
+        
         if(KeyHandler.rightPressed){
             if(rightCollision == false) {
             b[0].x += Block.SIZE;
@@ -171,6 +190,7 @@ public class Mino
             }
             KeyHandler.rightPressed = false;
         }
+        
         if(bottomCollision) {
             deactivating = true;
         }else {
@@ -183,8 +203,9 @@ public class Mino
                 autoDropCounter = 0;
             }
         }
-
     }
+    
+    //Allows sliding
     private void deactivating(){
         deactivateCounter++;
         if(deactivateCounter == 45){
@@ -195,10 +216,13 @@ public class Mino
             }
         }
     }
+    
+    //Draws shape
     public void draw(Graphics2D g2) {
-        
         int margin = 2;
         g2.setColor(b[0].c);
+        
+        //Delete margin code to get rid of black outline
         g2.fillRect(b[0].x+margin, b[0].y+margin, Block.SIZE-(margin*2), Block.SIZE-(margin*2));
         g2.fillRect(b[1].x+margin, b[1].y+margin, Block.SIZE-(margin*2), Block.SIZE-(margin*2));
         g2.fillRect(b[2].x+margin, b[2].y+margin, Block.SIZE-(margin*2), Block.SIZE-(margin*2));
