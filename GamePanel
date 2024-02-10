@@ -1,10 +1,10 @@
 package main;
 
 /**
- * The program is to set the game panels settings
+ * The program is to set the game panels settings and controls time and updates
  *
  * @author (Zach)
- * @version (7,2,2024)
+ * @version (8,2,2024)
  */
 
 import java.awt.Color;
@@ -43,8 +43,8 @@ public class GamePanel extends JPanel implements Runnable
         gameThread.start();
     }
     
+    //Controls time
     public void run(){
-        
         double drawInterval = 1000000000/FPS;
         double delta = 0;
         long lastTime = System.nanoTime();
@@ -64,11 +64,13 @@ public class GamePanel extends JPanel implements Runnable
         }
     }
     
+    //Updates the game
     private void update(){
-        if(KeyHandler.pausePressed == false){
+        if(KeyHandler.pausePressed == false && pm.gameOver == false){
             pm.update();
-        }   
+        }
     }
+    
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         
