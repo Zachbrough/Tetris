@@ -1,14 +1,13 @@
 package main;
 /**
- * Managers play
+ * Managers game
  *
- * @author (Zach Brough)
- * @version (2,7,2024)
+ * @author (Zach Brough) 
+ * @version (2,10,2024)
  */
 
 import java.awt.Graphics2D;
-import java.awt.BasicStroke;
-import java.awt.Color;
+import java.awt.BasicStroke;import java.awt.Color;
 import java.awt.Font;
 import java.awt.RenderingHints;
 import java.util.Random;
@@ -26,22 +25,37 @@ import mino.Mino_Z2;
 
 public class PlayManager
 {
+    //Screen size varibles
     final int WIDTH = 360;
     final int HEIGHT = 600;
     public static int left_x;
     public static int right_x;
     public static int top_y;
     public static int bottom_y;
+
     
-    Mino currentMino;
+    //Mino start locaction
     final int MINO_START_X;
     final int MINO_START_Y;
-    Mino nextMino;
-    final int NEXTMINO_X;
-    final int NEXTMINO_Y;
-    public static ArrayList<Block> staticBlocks = new ArrayList <>();
+    Mino currentMino; //Controls current mino
+    Mino nextMino; //Shows next mino
+    final int NEXTMINO_X;//next mino box x varible
+    final int NEXTMINO_Y;//next mino box y varible
+    public static ArrayList<Block> staticBlocks = new ArrayList <>();//Blocks that are not moving array
     
-    public static int dropInterval = 60;
+    public static int dropInterval = 60; //drop speed
+    boolean gameOver; // game over varible
+    
+    //effect varibles
+    boolean effectCounterOn;
+    int effectCounter;
+    ArrayList<Integer> effectY = new ArrayList<>();
+    
+    //progression varibles
+    int level = 1;
+    int lines = 0; 
+    public static int score = 0;
+    int highScore = 0;
 
     public PlayManager()
     {
@@ -61,6 +75,8 @@ public class PlayManager
         nextMino = pickMino();
         nextMino.setXY(NEXTMINO_X,NEXTMINO_Y);
     }
+    
+    //Sets next mino
     private Mino pickMino(){
         Mino mino = null;
         int i = new Random().nextInt(7);
@@ -76,6 +92,8 @@ public class PlayManager
         }
         return mino;
     }
+    
+    //Updates code
     public void update(){
         if(currentMino.active == false) {
             staticBlocks.add(currentMino.b[0]);
@@ -83,6 +101,10 @@ public class PlayManager
             staticBlocks.add(currentMino.b[2]);
             staticBlocks.add(currentMino.b[3]);
             
+            //Controls game over
+            if(currentMino.b[0].x == MINO_START_X && currentMino.b[0].y == MINO_START_Y){
+                gameOver = true;
+            }
             currentMino.deactivating = false;
             
             currentMino = nextMino;
@@ -93,13 +115,19 @@ public class PlayManager
             checkDelete();
         }else{
             currentMino.update();
+            //Controls high score
+            if (score > highScore){
+                highScore = score;
+            }
         }
         
     }
+    
     private void checkDelete() {
         int x = left_x;
         int y = top_y;
         int blockCount = 0;
+        int lineCount = 0;
         
         while(x<right_x && y < bottom_y) {
             
@@ -110,14 +138,34 @@ public class PlayManager
             }
             x += Block.SIZE;
             if(x == right_x){
+                //Removes row
                 if(blockCount == 12){
+                    
+                    effectCounterOn = true;
+                    effectY.add(y);
+                    
                     for(int i = staticBlocks.size()-1; i > -1; i--){
                         if(staticBlocks.get(i).y == y){
                             staticBlocks.remove(i);
                         }
                     }
+                    
+                    //Adds lines to score
+                    lineCount++;
+                    lines++;
+                    
+                    //Controls levels and speed
+                    if(lines % 10 == 0 && dropInterval > 1){
+                        level++;
+                        if(dropInterval > 10){
+                        dropInterval -= 10;
+                        }else{
+                        dropInterval -= 1;
+                    }
+                    }
+                    
                     for(int i = 0; i < staticBlocks.size(); i++){
-                        if(staticBlocks.get(i).y<y){
+                        if(staticBlocks.get(i).y < y){
                             staticBlocks.get(i).y += Block.SIZE;
                         }
                     }
@@ -125,9 +173,16 @@ public class PlayManager
                 blockCount = 0;
                 x = left_x;
                 y += Block.SIZE;
+                
+                //Adds Score
+                if(lineCount>0){
+                    int singleLineScore = 100 * level;
+                    score += singleLineScore * lineCount;
+                }
             }
         }
     }
+
     public void draw(Graphics2D g2){
         //Draw play area frame
         g2.setColor(Color.white);
@@ -141,6 +196,16 @@ public class PlayManager
         g2.setFont(new Font("Arial",Font.PLAIN, 30));
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.drawString("NEXT", x+60, y+60);
+        
+        //Draws score, high score, levels and lines infomation
+        g2.drawRect(x,top_y,325,350);
+        x += 40;
+        y = top_y + 90;
+        g2.drawString("LEVEL " + level, x, y); y += 70;
+        g2.drawString("LINES " + lines, x, y); y += 70;
+        g2.drawString("SCORE " + score, x, y); y += 70;
+        g2.drawString("HIGHSCORE " + highScore, x, y); y += 70;
+        
         //Draw the currentMino
         if(currentMino != null) {
             currentMino.draw(g2);
@@ -153,14 +218,52 @@ public class PlayManager
             staticBlocks.get(i).draw(g2);
         }
         
-        //Draw Pause
+        //Draws delete effect
+        if(effectCounterOn){
+            effectCounter++;
+            
+            g2.setColor(Color.red);
+            for(int i = 0; i < effectY.size(); i ++){
+                g2.fillRect(left_x,effectY.get(i),WIDTH, Block.SIZE);
+            }
+            if(effectCounter == 10){
+                effectCounterOn = false;
+                effectCounter = 0;
+                effectY.clear();
+            }
+        }
+        
+        //Draws game Over
         g2.setColor(Color.yellow);
         g2.setFont(g2.getFont ().deriveFont(50f));
-        if(KeyHandler.pausePressed){
+        if(gameOver){
+            x = left_x + 25;
+            y = top_y + 325;
+            g2.drawString("GAME OVER",x,y);
+        }
+        
+        //Draws pause
+        if(KeyHandler.pausePressed && gameOver == false){
             x = left_x + 70;
             y = top_y + 320;
             g2.drawString("PAUSED", x, y);
         }
         
+        //Resests game
+        if (KeyHandler.pausePressed && gameOver){
+            score = 0;
+            lines = 0;
+            level = 1; 
+            dropInterval = 60;
+            staticBlocks.clear();
+            gameOver = false;
+            KeyHandler.pausePressed = false;
+        }
+        //Draws Tetris title
+        x=150;
+        y=top_y + 320;
+        g2.setColor(Color.white);
+        g2.setFont(new Font("Times New Roman", Font.ITALIC, 60));
+        g2.drawString("Tetris",x,y);
     }
 }
