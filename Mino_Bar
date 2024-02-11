@@ -9,7 +9,7 @@ package mino;
 
 import java.awt.Color;
 
-public class Mino_bar extends Mino
+public class Mino_Bar extends Mino
 {
     public Mino_bar()
     {
