@@ -18,7 +18,7 @@ import mino.Block;
 import mino.Mino_L1;
 import mino.Mino_L2;
 import mino.Mino_Square;
-import mino.Mino_bar;
+import mino.Mino_Bar;
 import mino.Mino_T;
 import mino.Mino_Z1;
 import mino.Mino_Z2;
